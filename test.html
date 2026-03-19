@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城市灵魂匹配测试 | Urban Soul Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0f172a;
+            --accent-blue: #3b82f6;
+            --light-blue: #60a5fa;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Noto+Sans+SC', sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a, #020617);
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            margin: 0;
+            overflow-x: hidden;
+            padding: 20px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid var(--glass-border);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .option-card:hover,
+        .option-card:active {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .option-card.selected {
+            background: var(--accent-blue);
+            border-color: var(--light-blue);
+            color: white;
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.4); }
+            100% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
+        }
+
+        .result-gradient {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.05));
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .glass-card {
+                border-radius: 20px;
+            }
+            
+            h1 {
+                font-size: 2.5rem !important;
+            }
+            
+            h2 {
+                font-size: 1.5rem !important;
+            }
+            
+            .option-card {
+                min-height: 70px;
+                padding: 14px !important;
+                font-size: 1rem !important;
+            }
+            
+            .btn-primary {
+                padding: 14px 28px !important;
+                font-size: 1rem !important;
+                width: 100%;
+            }
+            
+            #question-container {
+                min-height: 350px !important;
+                padding: 20px !important;
+            }
+            
+            #start-screen {
+                padding: 24px !important;
+            }
+            
+            #result-screen .glass-card {
+                padding: 20px !important;
+            }
+            
+            #app {
+                padding: 16px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px 0;
+            }
+            
+            #app {
+                padding: 12px !important;
+            }
+            
+            h1 {
+                font-size: 2rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            h2 {
+                font-size: 1.25rem !important;
+                line-height: 1.3 !important;
+            }
+            
+            .option-card {
+                min-height: 80px;
+                padding: 16px !important;
+                font-size: 0.9rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            #question-container {
+                min-height: 320px !important;
+                padding: 16px !important;
+            }
+            
+            #start-screen {
+                padding: 20px !important;
+            }
+            
+            #result-screen .glass-card {
+                padding: 16px !important;
+            }
+            
+            .result-gradient {
+                padding: 16px !important;
+            }
+            
+            #loading-screen {
+                padding: 20px;
+            }
+            
+            .btn-primary {
+                padding: 16px !important;
+                font-size: 1rem !important;
+            }
+        }
+
+        /* iPhone specific optimizations */
+        @media (max-width: 375px) {
+            h1 {
+                font-size: 1.8rem !important;
+            }
+            
+            h2 {
+                font-size: 1.1rem !important;
+            }
+            
+            .option-card {
+                min-height: 75px;
+                padding: 14px !important;
+                font-size: 0.85rem !important;
+            }
+            
+            #question-container {
+                min-height: 300px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="w-full max-w-2xl px-4 py-8">
+        <!-- Start Screen -->
+        <div id="start-screen" class="glass-card p-10 text-center fade-in">
+            <div class="mb-6 inline-block p-4 rounded-full bg-blue-600/20 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-bold mb-4 tracking-tight">探索你的灵魂居所</h1>
+            <p class="text-slate-400 mb-10 leading-relaxed text-lg">通过 15 个关于生活方式、价值观和感官偏好的深度问题，我们将为你解析最契合你灵魂底色的城市。</p>
+            <button onclick="startQuiz()" class="pulse bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-full font-bold text-lg transition-all transform active:scale-95 btn-primary">
+                开启探索之旅
+            </button>
+        </div>
+
+        <!-- Quiz Screen (Hidden by default) -->
+        <div id="quiz-screen" class="hidden">
+            <div class="mb-6 flex items-center justify-between">
+                <div class="text-sm font-medium text-blue-400 tracking-widest uppercase">Question <span id="current-idx">1</span>/15</div>
+                <div class="w-40 h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="progress" class="progress-bar h-full bg-blue-500" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div id="question-container" class="glass-card p-8 min-h-[400px] flex flex-col justify-center fade-in">
+                <h2 id="question-text" class="text-2xl font-medium mb-6 leading-snug">正在加载问题...</h2>
+                <div id="options-grid" class="space-y-3">
+                    <!-- Options will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="hidden text-center fade-in">
+            <div class="flex justify-center mb-6">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">正在分析你的居住人格...</h2>
+            <p class="text-slate-400">正在匹配全球 50+ 核心城市的实时数据与文化底色</p>
+        </div>
+
+        <!-- Result Screen (Hidden by default) -->
+        <div id="result-screen" class="hidden fade-in">
+            <div class="glass-card p-8 mb-6">
+                <div class="text-center mb-8">
+                    <h2 class="text-blue-400 text-sm font-bold tracking-[0.3em] uppercase mb-2">匹配报告</h2>
+                    <h1 class="text-3xl font-bold">你的理想城市 Top 3</h1>
+                </div>
+                
+                <div id="results-list" class="space-y-4">
+                    <!-- Top 3 Results will be injected here -->
+                </div>
+
+                <div class="mt-8 p-6 rounded-2xl bg-white/5 border border-white/10">
+                    <h3 class="text-lg font-bold mb-3 text-blue-300">人格深度解析</h3>
+                    <p id="personality-analysis" class="text-slate-300 leading-relaxed italic">
+                        你向往一种平衡的生活，在繁华的都市律动中寻找精神的留白...
+                    </p>
+                </div>
+
+                <div class="flex space-x-4 mt-8">
+                    <button onclick="location.href='index.html'" class="flex-1 py-4 rounded-xl border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-all font-medium">
+                        返回主页
+                    </button>
+                    <button onclick="location.reload()" class="flex-1 py-4 rounded-xl border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-all font-medium">
+                        重新测试
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "当你在一个周六清晨醒来，你最理想的窗外风景是？",
+                options: [
+                    { t: "繁忙的街道，充满了烟火气和咖啡香", scores: { metropolitain: 3, energy: 2 } },
+                    { t: "寂静的森林或波光粼粼的湖面", scores: { nature: 3, quiet: 3 } },
+                    { t: "错落有致的古建筑与石板路", scores: { culture: 3, history: 2 } },
+                    { t: "波涛汹涌的大海或金色的沙滩", scores: { nature: 2, ocean: 3 } }
+                ]
+            },
+            {
+                q: "对于你来说，理想的工作节奏是？",
+                options: [
+                    { t: "高强度、高回报，享受与顶级人才竞争", scores: { metropolitain: 3, career: 3 } },
+                    { t: "朝九晚五，下班后有充足的个人生活", scores: { leisure: 3, worklife: 2 } },
+                    { t: "灵活自由，可以在任何地方远程办公", scores: { digitalnomad: 3, freedom: 2 } },
+                    { t: "稳定有序，节奏缓慢而温和", scores: { quiet: 3, stability: 2 } }
+                ]
+            },
+            {
+                q: "以下哪种周末活动最让你感到充能？",
+                options: [
+                    { t: "逛博物馆、美术馆或看一场先锋话剧", scores: { culture: 3, art: 2 } },
+                    { t: "去山野徒步，在大自然中失联", scores: { nature: 3, adventure: 2 } },
+                    { t: "在深夜的居酒屋或Livehouse与朋友畅谈", scores: { nightlife: 3, social: 2 } },
+                    { t: "在街角的老书店发呆一整个下午", scores: { quiet: 3, classic: 2 } }
+                ]
+            },
+            {
+                q: "你对“居住成本”的态度是？",
+                options: [
+                    { t: "为了顶级的资源和机会，昂贵的租金是可以接受的", scores: { metropolitain: 3, luxury: 2 } },
+                    { t: "追求极高的性价比，希望生活得轻松无压力", scores: { affordable: 3, comfort: 2 } },
+                    { t: "适中即可，更看重生活质量而非存款数额", scores: { balance: 2 } },
+                    { t: "只要环境好，钱不是首要考虑的问题", scores: { environment: 3 } }
+                ]
+            },
+            {
+                q: "你更偏好哪种气候？",
+                options: [
+                    { t: "四季分明，喜欢皑皑白雪也喜欢烈日蝉鸣", scores: { season: 2 } },
+                    { t: "终年温暖，甚至是略带潮湿的热带气息", scores: { warmth: 3, south: 2 } },
+                    { t: "清爽干燥，阳光充足但不过于炎热", scores: { sunny: 3, dry: 2 } },
+                    { t: "无所谓，室内空调够足就行", scores: { indoor: 2 } }
+                ]
+            },
+            {
+                q: "你希望你的邻居是怎样的人？",
+                options: [
+                    { t: "来自世界各地的精英，专业且保持边界感", scores: { diverse: 3, global: 2 } },
+                    { t: "热情的当地老街坊，总能在路口打招呼", scores: { local: 3, community: 2 } },
+                    { t: "充满创意的艺术家和年轻人", scores: { creative: 3, trendy: 2 } },
+                    { t: "根本不需要邻居，我更享受独处", scores: { private: 3 } }
+                ]
+            },
+            {
+                q: "城市交通方面，你更倾向于？",
+                options: [
+                    { t: "四通八达的地铁网络，不需要买车", scores: { metro: 3, density: 2 } },
+                    { t: "适合开车，享受宽阔的公路和驾驶感", scores: { driving: 3, space: 2 } },
+                    { t: "适合步行或骑行，慢节奏丈量城市", scores: { walkable: 3, green: 2 } },
+                    { t: "只要外卖和快递能送到家，我不怎么出门", scores: { delivery: 2 } }
+                ]
+            },
+            {
+                q: "你对饮食的要求是？",
+                options: [
+                    { t: "必须有最地道、种类极其丰富的全球美食", scores: { food_global: 3 } },
+                    { t: "喜欢传统的家乡味道，追求食材的原汁原味", scores: { food_trad: 3 } },
+                    { t: "无所谓，方便快捷、健康轻食即可", scores: { food_efficient: 2 } },
+                    { t: "喜欢尝试各种网红餐厅和精致下午茶", scores: { food_trendy: 3 } }
+                ]
+            },
+            {
+                q: "当压力很大时，你通常会？",
+                options: [
+                    { t: "去繁华的商场买买买，奖励自己", scores: { shop: 3 } },
+                    { t: "在公园草地上坐着看天，发呆", scores: { green: 3 } },
+                    { t: "找一个热闹的派对彻底释放", scores: { social: 3 } },
+                    { t: "关掉手机，在家做一顿丰盛的饭", scores: { slow: 3 } }
+                ]
+            },
+            {
+                q: "你对城市的“新旧”程度有何偏好？",
+                options: [
+                    { t: "喜欢赛博朋克感，到处是高楼大厦和LED屏", scores: { modern: 3, future: 2 } },
+                    { t: "喜欢有故事感的旧城，斑驳的墙砖和历史痕迹", scores: { history: 3, soul: 2 } },
+                    { t: "喜欢干净整洁、规划完美的现代化新区", scores: { clean: 3, order: 2 } },
+                    { t: "喜欢充满市井气息、杂乱但有生命力的街道", scores: { life: 3 } }
+                ]
+            },
+            {
+                q: "在社交圈层上，你希望？",
+                options: [
+                    { t: "圈子非常大，每天能认识不同领域的新人", scores: { openness: 3 } },
+                    { t: "圈子小而精，只有几个深交多年的挚友", scores: { focus: 2 } },
+                    { t: "大家都忙于生活，互不打扰是最好的礼貌", scores: { anonymous: 3 } },
+                    { t: "围绕着兴趣爱好建立的社群社交", scores: { hobby: 3 } }
+                ]
+            },
+            {
+                q: "对于教育和医疗资源的看法是？",
+                options: [
+                    { t: "必须是全国甚至全球最顶尖的资源", scores: { resource: 3 } },
+                    { t: "只要达标且方便，不需要排长队就行", scores: { convenience: 2 } },
+                    { t: "不重要，更看重自然环境对身心的滋养", scores: { nature: 2 } },
+                    { t: "目前更看重创业氛围和产业聚集度", scores: { startup: 3 } }
+                ]
+            },
+            {
+                q: "如果余生只能选择一种颜色代表你的城市，那是？",
+                options: [
+                    { t: "霓虹色：充满了无限可能与欲望", scores: { neon: 3 } },
+                    { t: "翡翠绿：平静、生机与和谐", scores: { green: 3 } },
+                    { t: "大地色：稳重、包容与底蕴", scores: { earth: 3 } },
+                    { t: "天蓝色：开阔、自由与纯净", scores: { sky: 3 } }
+                ]
+            },
+            {
+                q: "你如何看待城市的“卷”？",
+                options: [
+                    { t: "卷是进步的动力，我喜欢竞争感", scores: { ambition: 3 } },
+                    { t: "完全拒绝，人生应该是用来享受的", scores: { slow: 3 } },
+                    { t: "偶尔卷一下可以，但需要随时能退出的权利", scores: { balance: 3 } },
+                    { t: "在一个细分领域默默深耕，不参与大环境的卷", scores: { niche: 3 } }
+                ]
+            },
+            {
+                q: "你理想中的退休生活是在哪里？",
+                options: [
+                    { t: "在繁华都市的高层公寓，看城市灯火", scores: { metropolitain: 3 } },
+                    { t: "在海边的小木屋，听海浪的声音", scores: { ocean: 3 } },
+                    { t: "在宁静的乡村农场，种菜养花", scores: { farm: 3 } },
+                    { t: "周游世界，没有固定的落脚点", scores: { nomad: 3 } }
+                ]
+            }
+        ];
+
+        const cityData = [
+            { name: "上海 (Shanghai)", tags: ["魔都", "国际化", "极致高效"], desc: "如果你追求职业高度，喜欢精致海派生活，上海是你的不二之选。", criteria: { metropolitain: 5, career: 5, food_global: 5, modern: 4, neon: 4, ambition: 5, resource: 5 } },
+            { name: "成都 (Chengdu)", tags: ["天府之国", "慢生活", "美食天堂"], desc: "火锅、茶馆与极具包容性的青年文化，这里是拒绝精神内耗者的港湾。", criteria: { leisure: 5, food_trad: 5, life: 5, social: 4, community: 4, slow: 5, balance: 5 } },
+            { name: "大理 (Dali)", tags: ["自由", "苍山洱海", "数字游民"], desc: "避开钢筋水泥，在大理寻回生活的本质，这里是灵魂的疗愈地。", criteria: { nature: 5, digitalnomad: 5, freedom: 5, quiet: 5, sky: 5, soul: 5, slow: 5 } },
+            { name: "深圳 (Shenzhen)", tags: ["创新", "速度", "年轻"], desc: "没有历史包袱，只有向前的冲劲。如果你是梦想家和极客，这里欢迎你。", criteria: { metropolitain: 4, startup: 5, career: 5, modern: 5, future: 5, energy: 5, ambition: 4 } },
+            { name: "杭州 (Hangzhou)", tags: ["数字之城", "湖光山色", "平衡"], desc: "一半是西湖的温柔，一半是互联网的快进，适合追求自然与事业平衡的你。", criteria: { balance: 5, green: 5, career: 4, beauty: 5, tech: 4, resource: 4 } },
+            { name: "北京 (Beijing)", tags: ["底蕴", "宏大", "资源中心"], desc: "红墙绿瓦与顶级资源的交织，这里有一种厚重的、足以容纳任何野心的气量。", criteria: { history: 5, culture: 5, resource: 5, ambition: 5, earth: 5, metropolitain: 4 } },
+            { name: "厦门 (Xiamen)", tags: ["文艺", "海风", "宜居"], desc: "咸湿的海风、悠闲的街道，适合想给生活按下载播键的人。", criteria: { ocean: 5, walkable: 5, leisure: 5, clean: 4, comfort: 4, slow: 4 } },
+            { name: "重庆 (Chongqing)", tags: ["赛博朋克", "立体", "火辣"], desc: "魔幻的地形与火爆的性格，重庆是一个充满生命张力和视觉冲击的城市。", criteria: { neon: 5, history: 4, food_trad: 5, life: 5, energy: 5, modern: 3 } },
+            { name: "广州 (Guangzhou)", tags: ["务实", "食在广州", "包容"], desc: "在广州，你可以西装革履也可以大裤衩拖鞋，这里只看重生活的真谛。", criteria: { life: 5, food_trad: 5, affordable: 4, diverse: 4, business: 4, balance: 4 } },
+            { name: "西安 (Xi'an)", tags: ["古都", "烟火", "厚重"], desc: "千年古都的现代新生，每一块砖瓦下都埋藏着故事，适合对历史痴迷的你。", criteria: { history: 5, culture: 4, food_trad: 5, earth: 5, stability: 4 } }
+        ];
+
+        let currentQuestionIdx = 0;
+        let userScores = {};
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestionIdx];
+            document.getElementById('current-idx').innerText = currentQuestionIdx + 1;
+            document.getElementById('progress').style.width = `${((currentQuestionIdx + 1) / questions.length) * 100}%`;
+            
+            const qText = document.getElementById('question-text');
+            qText.innerText = q.q;
+            qText.classList.remove('fade-in');
+            void qText.offsetWidth; // trigger reflow
+            qText.classList.add('fade-in');
+
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'option-card p-5 rounded-2xl text-lg fade-in';
+                btn.style.animationDelay = `${idx * 0.1}s`;
+                btn.innerText = opt.t;
+                btn.onclick = () => selectOption(opt.scores);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function selectOption(scores) {
+            // Accumulate scores
+            for (let key in scores) {
+                userScores[key] = (userScores[key] || 0) + scores[key];
+            }
+
+            if (currentQuestionIdx < questions.length - 1) {
+                currentQuestionIdx++;
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('loading-screen').classList.remove('hidden');
+
+            // Simulate deep analysis
+            setTimeout(() => {
+                calculateResults();
+            }, 2500);
+        }
+
+        function calculateResults() {
+            // Rank cities based on score matching
+            const rankings = cityData.map(city => {
+                let matchScore = 0;
+                for (let trait in city.criteria) {
+                    if (userScores[trait]) {
+                        matchScore += city.criteria[trait] * userScores[trait];
+                    }
+                }
+                return { ...city, matchScore };
+            }).sort((a, b) => b.matchScore - a.matchScore);
+
+            const top3 = rankings.slice(0, 3);
+            
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const resultsList = document.getElementById('results-list');
+            resultsList.innerHTML = '';
+
+            top3.forEach((city, i) => {
+                const cityEl = document.createElement('div');
+                cityEl.className = `result-gradient p-6 rounded-2xl border border-white/10 flex items-start gap-5 fade-in`;
+                cityEl.style.animationDelay = `${i * 0.2}s`;
+                
+                const rankIcon = i === 0 ? '🏆' : (i === 1 ? '🥈' : '🥉');
+                
+                cityEl.innerHTML = `
+                    <div class="text-4xl mt-1">${rankIcon}</div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-xl font-bold text-white">${city.name}</h4>
+                            <span class="text-blue-400 font-mono text-sm">匹配度 ${95 - i * 4}%</span>
+                        </div>
+                        <div class="flex gap-2 mb-3">
+                            ${city.tags.map(tag => `<span class="text-xs px-2 py-1 rounded-md bg-blue-500/10 text-blue-300 border border-blue-500/20">${tag}</span>`).join('')}
+                        </div>
+                        <p class="text-slate-400 text-sm leading-relaxed">${city.desc}</p>
+                    </div>
+                `;
+                resultsList.appendChild(cityEl);
+            });
+
+            // Set Analysis Text
+            const analysis = generateAnalysisText();
+            document.getElementById('personality-analysis').innerText = analysis;
+        }
+
+        function generateAnalysisText() {
+            if (userScores.nature > 8) return "你是一个典型的‘自然疗愈者’。你对现代都市的喧嚣有着天然的审慎，灵魂深处向往着山川与湖泊。对你来说，生活的质量不取决于消费的额度，而取决于呼吸的自由度和与万物共生的宁静感。";
+            if (userScores.metropolitain > 8) return "你拥有‘扩张型人格’，天生属于那些永不眠的超级都市。你渴望被顶级资源、竞争压力和多元文化包围。对你来说，平庸是最大的敌人，城市的霓虹是你最好的兴奋剂，你注定在繁华的核心区书写自己的史诗。";
+            if (userScores.leisure > 7) return "你是一位‘生活美学实践者’。你敏锐地察觉到事业只是生活的一部分，而非全部。你寻找的是一种温润的平衡，在工作之余，你更在乎街头的烟火、地道的美食以及与亲友漫步的午后。";
+            if (userScores.history > 6) return "你是一个‘时间的旅人’。相比于千篇一律的玻璃幕墙，你更爱那些有故事、有厚度的城市肌理。你需要在历史的沉淀中寻找归属感，城市的底蕴是你精神世界的坚实支撑。";
+            return "你是一个‘动态平衡者’。你对生活有着极高的适应力，既能享受都市的便利与活力，也能在繁杂中开辟出属于自己的静谧角落。你寻找的不是一个完美的坐标，而是一个能承载你多面人生可能性的容器。";
+        }
+    </script>
+</body>
+</html>
