@@ -277,6 +277,11 @@
     </div>
 
     <script>
+        // 检查兑换码验证状态
+        if (!localStorage.getItem('redeemCodeVerified')) {
+            window.location.href = 'index.html';
+        }
+
         const questions = [
             {
                 q: "当你在一个周六清晨醒来，你最理想的窗外风景是？",
